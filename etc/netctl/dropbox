@@ -1,0 +1,3 @@
+#!/bin/sh
+ExecUpPost="su -c 'dropbox-cli start' ytet5uy4 || true"
+ExecDownPre="su -c 'dropbox-cli stop' ytet5uy4 || true"

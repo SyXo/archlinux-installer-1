@@ -1,0 +1,262 @@
+#!/bin/bash
+
+# Check environment variables
+if [[ -z $ARCHLINUX_INSTALLER_ROOT_PASSWORD ]]; then
+  printf 'Not set $ARCHLINUX_INSTALLER_ROOT_PASSWORD'
+  exit 1
+fi
+if [[ -z $ARCHLINUX_INSTALLER_USER_PASSWORD ]]; then
+  printf 'Not set $ARCHLINUX_INSTALLER_USER_PASSWORD'
+  exit 1
+fi
+
+# Set default value
+if [[ -z $ARCHLINUX_INSTALLER_USB_KEY ]]; then
+  export ARCHLINUX_INSTALLER_LAPTOP=1
+fi
+if [[ $ARCHLINUX_INSTALLER_LAPTOP = 1 ]]; then
+  if [[ -z $ARCHLINUX_INSTALLER_BLOCKDEVICE ]]; then
+    export ARCHLINUX_INSTALLER_BLOCKDEVICE=nvme0n1
+  fi
+  if [[ -z $ARCHLINUX_INSTALLER_PARTITION1 ]]; then
+    export ARCHLINUX_INSTALLER_PARTITION1=nvme0n1p1
+  fi
+  if [[ -z $ARCHLINUX_INSTALLER_PARTITION2 ]]; then
+    export ARCHLINUX_INSTALLER_PARTITION2=nvme0n1p2
+  fi
+elif [[ $ARCHLINUX_INSTALLER_USB_KEY = 1 ]]; then
+  export ARCHLINUX_INSTALLER_ROOT_ONLY = 1
+  if [[ -z $ARCHLINUX_INSTALLER_BLOCKDEVICE ]]; then
+    export ARCHLINUX_INSTALLER_BLOCKDEVICE=sdb
+  fi
+  if [[ -z $ARCHLINUX_INSTALLER_PARTITION1 ]]; then
+    export ARCHLINUX_INSTALLER_PARTITION1=sdb1
+  fi
+  if [[ -z $ARCHLINUX_INSTALLER_PARTITION2 ]]; then
+    export ARCHLINUX_INSTALLER_PARTITION2=sdb2
+  fi
+  if [[ -z $ARCHLINUX_INSTALLER_PARTITION3 ]]; then
+    export ARCHLINUX_INSTALLER_PARTITION3=sdb3
+  fi
+fi
+if [[ -z $ARCHLINUX_INSTALLER_HOSTNAME ]]; then
+  export ARCHLINUX_INSTALLER_HOSTNAME=localhost
+fi
+if [[ -z $ARCHLINUX_INSTALLER_SHELL ]]; then
+  export ARCHLINUX_INSTALLER_SHELL=zsh
+fi
+if [[ -z $ARCHLINUX_INSTALLER_TIMEZONE ]]; then
+  export ARCHLINUX_INSTALLER_TIMEZONE=Asia/Tokyo
+fi
+if [[ -z $ARCHLINUX_INSTALLER_LANG ]]; then
+  export ARCHLINUX_INSTALLER_LANG=en_US
+fi
+if [[ -z $ARCHLINUX_INSTALLER_CHARSET ]]; then
+  export ARCHLINUX_INSTALLER_CHARSET='UTF-8'
+fi
+if [[ -z $ARCHLINUX_INSTALLER_KEYMAP ]]; then
+  export ARCHLINUX_INSTALLER_KEYMAP=jp106
+fi
+if [[ -z $ARCHLINUX_INSTALLER_USERNAME ]]; then
+  export ARCHLINUX_INSTALLER_USERNAME=ytet5uy4
+fi
+if [[ -z $ARCHLINUX_INSTALLER_CPU ]]; then
+  export ARCHLINUX_INSTALLER_CPU=intel
+fi
+
+# Check boot mode
+if ! [[ -d /sys/firmware/efi/efivars ]]; then
+  printf 'UEFI mode is disabled'
+  exit 1
+fi
+
+# Check Internet connection
+if ping -c 3 archlinux.org >/dev/null 2>&1; then
+  printf 'No connection is available'
+  exit 1
+fi
+
+# Update the system clock
+timedatectl set-ntp true
+
+# Partition the disks
+#
+# Laptop
+#
+# | Mount point | Partition | Partition type | Filesystem | Size  |
+# |:------------|:----------|:---------------|:-----------|:------|
+# | /boot       | nvme0n1p1 | EFI System     | FAT32      | 100MB |
+# | /           | nvme0n1p2 | Linux LVM      | XFS        | 30GB  |
+# | /home       | nvme0n1p2 | Linux LVM      | XFS        | rest  |
+
+#
+# USB Key
+#
+# | Mount point | Partition | Partition type       | Filesystem | Size  |
+# |:------------|:----------|:---------------------|:-----------|:------|
+# | /data       | sdb1      | Microsoft basic data | exFAT      | 2GB   |
+# | /boot       | sdb2      | EFI System           | FAT32      | 100MB |
+# | /           | sdb3      | Linux filesystem     | XFS        | rest  |
+
+declare block_device="$ARCHLINUX_INSTALLER_BLOCKDEVICE"
+
+declare -a partitions=(
+  "$ARCHLINUX_INSTALLER_PARTITION1"
+  "$ARCHLINUX_INSTALLER_PARTITION2"
+  "$ARCHLINUX_INSTALLER_PARTITION3"
+)
+
+## Create partitions
+sgdisk -Z /dev/$block_device
+if [[ $ARCHLINUX_INSTALLER_LAPTOP = 1 ]]; then
+  sgdisk -n 0::+100M -t 0:EF00 -c 0:'EFI System' /dev/$block_device
+  sgdisk -n 0::: -t 0:8E00 -c 0:'Linux LVM' /dev/$block_device
+elif [[ $ARCHLINUX_INSTALLER_USB_KEY = 1 ]]; then
+  sgdisk -n 0::+2G -t 0:0700 -c 0:'Microsoft basic data' /dev/$block_device
+  sgdisk -n 0::+100M -t 0:EF00 -c 0:'EFI System' /dev/$block_device
+  sgdisk -n 0::: -t 0:8300 -c 0:'Linux filesystem' /dev/$block_device
+fi
+sgdisk -p /dev/$block_device
+
+## Create physical volumes
+if [[ $ARCHLINUX_INSTALLER_LAPTOP = 1 ]]; then
+  pvcreate /dev/${partitions[1]}
+fi
+
+## Create volume group
+if [[ $ARCHLINUX_INSTALLER_LAPTOP = 1 ]]; then
+  vgcreate vg00 /dev/${partitions[1]}
+fi
+
+## Create logical volumes
+if [[ $ARCHLINUX_INSTALLER_LAPTOP = 1 ]]; then
+  lvcreate vg00 -L 30GB -n root
+  lvcreate vg00 -l 100%FREE -n home
+fi
+
+# Format the partitions
+if [[ $ARCHLINUX_INSTALLER_LAPTOP = 1 ]]; then
+  mkfs.vfat -F 32 /dev/${partitions[0]}
+  mkfs.xfs /dev/mapper/vg00-root
+  mkfs.xfs /dev/mapper/vg00-home
+elif [[ $ARCHLINUX_INSTALLER_USB_KEY = 1 ]]; then
+  mkfs.exfat /dev/${partitions[0]}
+  mkfs.vfat -F 32 /dev/${partitions[1]}
+  mkfs.xfs /dev/${partitions[2]}
+fi
+
+# Mount the file systems
+mkdir /mnt/boot
+if [[ $ARCHLINUX_INSTALLER_LAPTOP = 1 ]]; then
+  mkdir /mnt/home
+  mount /dev/mapper/vg00-root /mnt
+  mount /dev/mapper/vg00-home /mnt/home
+  mount /dev/${partitions[0]} /mnt/boot
+elif [[ $ARCHLINUX_INSTALLER_USB_KEY = 1 ]]; then
+  mount /dev/${partitions[2]} /mnt
+  mount /dev/${partitions[1]} /mnt/boot
+fi
+
+# Force a refresh of all package lists
+pacman -Syy
+
+# Update the latest mirror list
+pacman -S --noconfirm reflector
+cp /etc/pacman.d/mirrorlist{,.bak}
+reflector -c Japan -l 5 -p http --sort rate --save /etc/pacman.d/mirrorlist
+pacman -Syy
+
+# Update all packages
+pacman -Syu --noconfirm
+
+# Install the base packages
+pacstrap /mnt base base-devel
+
+# Configure the system
+## Fstab
+genfstab -U -p /mnt >> /mnt/etc/fstab
+
+## Time zone
+declare timezone="$ARCHLINUX_INSTALLER_TIMEZONE"
+arch-chroot /mnt ln -sf /usr/share/zoneinfo/$timezone /etc/localtime
+arch-chroot /mnt hwclock -w
+
+## Locale
+declare lang="$ARCHLINUX_INSTALLER_LANG"
+declare charset="$ARCHLINUX_INSTALLER_CHARSET"
+declare keymap="$ARCHLINUX_INSTALLER_KEYMAP"
+arch-chroot /mnt sed -i -e "/#$lang.$charset $charset  /s/#//" /etc/locale.gen
+arch-chroot /mnt locale-gen
+arch-chroot /mnt bash -c "echo LANG=$lang.$charset >/etc/locale.conf"
+arch-chroot /mnt bash -c "echo KEYMAP=$keymap >/etc/vconsole.conf"
+
+## Hostname
+declare hostname="$ARCHLINUX_INSTALLER_HOSTNAME"
+arch-chroot /mnt bash -c "echo $hostname > /etc/hostname"
+if [[ $hostname != localhost ]]; then
+  arch-chroot /mnt \
+    bash -c "echo '127.0.1.1	$hostname.localdomain	$hostname' >> /etc/hosts"
+fi
+
+## Network configuration
+arch-chroot /mnt pacman -S --noconfirm iw wpa_supplicant dialog
+### netctl-ifplugd
+arch-chroot /mnt pacman -S --noconfirm ifplugd
+### netctl-auto
+arch-chroot /mnt pacman -S --noconfirm wpa_actiond rfkill
+
+## Initramfs
+if [[ $ARCHLINUX_INSTALLER_LAPTOP = 1 ]]; then
+  arch-chroot /mnt sed -i -e \
+    's/\(^HOOKS.*\)block filesystems\(.*\)/\1block lvm2 filesystems\2/' \
+    /etc/mkinitcpio.conf
+fi
+arch-chroot /mnt sed -i -e 's/\(^HOOKS.*\) fsck/\1/' /etc/mkinitcpio.conf
+arch-chroot /mnt cp \
+  /usr/lib/systemd/system/systemd-fsck{@,-root}.service /etc/systemd/system
+arch-chroot /mnt curl -o '/etc/systemd/system/systemd-fsck@.service.d/#1' \
+  https://raw.githubusercontent.com/ytet5uy4/archlinux-installer/master/etc/systemd/systemd-fsck/{io.conf}
+arch-chroot /mnt curl -o '/etc/systemd/system/systemd-fsck-root.service.d/#1' \
+  https://raw.githubusercontent.com/ytet5uy4/archlinux-installer/master/etc/systemd/systemd-fsck/{io.conf}
+arch-chroot /mnt mkinitcpio -p linux
+
+## User
+declare -A password
+password["root"]="$ARCHLINUX_INSTALLER_ROOT_PASSWORD"
+arch-chroot /mnt bash -c \
+  "echo \"root:${password["root"]}\" | chpasswd"
+if ! [[ $ARCHLINUX_INSTALLER_ROOT_ONLY = 1 ]]; then
+  declare shell="$ARCHLINUX_INSTALLER_SHELL"
+  declare username="$ARCHLINUX_INSTALLER_USERNAME"
+  arch-chroot /mnt pacman -S --noconfirm $shell
+  arch-chroot /mnt useradd -m -g users -G wheel -s /bin/$shell $username
+
+  password["$username"]="$ARCHLINUX_INSTALLER_USER_PASSWORD"
+  arch-chroot /mnt bash -c \
+    "echo \"$username:${password["$username"]}\" | chpasswd"
+
+  # Privilege escalation
+  arch-chroot /mnt bash -c 'cat /etc/sudoers > /etc/sudoers.tmp'
+  arch-chroot /mnt bash -c 'cat >>/etc/sudoers.tmp <<EOF
+Cmnd_Alias NETCTL = /usr/bin/netctl-auto, /usr/bin/wifi-menu
+Defaults pwfeedback
+Defaults env_reset,env_keep += "HOME http_proxy https_proxy"
+%wheel ALL=(ALL) ALL
+%wheel ALL=(ALL) NOPASSWD: NETCTL
+EOF'
+  arch-chroot /mnt bash -c \
+    'visudo -c -f /etc/sudoers.tmp && cat /etc/sudoers.tmp > /etc/sudoers'
+  arch-chroot /mnt rm -f /etc/sudoers.tmp
+fi
+
+## Boot loader
+if [[ $ARCHLINUX_INSTALLER_CPU = intel ]]; then
+  arch-chroot /mnt pacman -S --noconfirm intel-ucode
+fi
+arch-chroot /mnt bootctl install
+declare -A url
+arch-chroot /mnt curl -o '/boot/loader/entries/#1' \
+  https://raw.githubusercontent.com/ytet5uy4/archlinux-installer/master/etc/boot-loader/{arch.conf}
+
+# Unmount the file systems
+umount -R /mnt

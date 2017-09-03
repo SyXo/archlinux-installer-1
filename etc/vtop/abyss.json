@@ -1,0 +1,34 @@
+{
+	"name": "abyss",
+	"author": "ytet5uy4",
+	"title": {
+		"fg": "#1453AD"
+	},
+	"chart": {
+		"fg": "#1453AD",
+		"border": {
+			"type": "line",
+			"fg": "#1453AD"
+		}
+	},
+	"table": {
+		"fg": "fg",
+		"items": {
+			"selected": {
+				"bg": "#1453AD",
+				"fg": "bg"
+			},
+			"item": {
+				"fg": "fg",
+				"bg": "bg"
+			}
+		},
+		"border": {
+			"type": "line",
+			"fg": "#1453AD"
+		}
+	},
+	"footer": {
+		"fg": "fg"
+	}
+}

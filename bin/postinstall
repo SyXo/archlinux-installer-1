@@ -1,0 +1,324 @@
+#!/bin/bash
+
+# Check environment variables
+if [[ -z $ARCHLINUX_INSTALLER_USER_PASSWORD ]]; then
+  printf 'Not set $ARCHLINUX_INSTALLER_USER_PASSWORD'
+  exit 1
+fi
+
+sudo() { echo "$ARCHLINUX_INSTALLER_USER_PASSWORD" | command sudo -Ss "$@"; }
+
+# Set default value
+if [[ -z $ARCHLINUX_INSTALLER_DESKTOP ]]; then
+  export ARCHLINUX_INSTALLER_LAPTOP=1
+fi
+if [[ $ARCHLINUX_INSTALLER_DESKTOP = 1 ]]; then
+  export ARCHLINUX_INSTALLER_WIRED_ONLY=1
+fi
+if [[ -z $ARCHLINUX_INSTALLER_WIRED_NETWORK_INTERFACE ]]; then
+  export ARCHLINUX_INSTALLER_WIRED_NETWORK_INTERFACE=enp4s0
+fi
+if [[ -z $ARCHLINUX_INSTALLER_WIRELESS_NETWORK_INTERFACE ]]; then
+  export ARCHLINUX_INSTALLER_WIRELESS_NETWORK_INTERFACE=wlp4s0
+fi
+if [[ -z $ARCHLINUX_INSTALLER_CPU ]]; then
+  export ARCHLINUX_INSTALLER_CPU=intel
+fi
+
+# Configure the system
+## Networking
+### Network configuration
+if [[ $ARCHLINUX_INSTALLER_WIRED_ONLY = 1 ]]; then
+  sudo systemctl enable --now dhcpcd
+else
+  declare -A network_interface
+  network_interface["wired"]="$ARCHLINUX_INSTALLER_WIRED_NETWORK_INTERFACE"
+  network_interface["wireless"]="$ARCHLINUX_INSTALLER_WIRELESS_NETWORK_INTERFACE"
+
+  sudo sed -i -e "s/eth0/${network_interface["wired"]}/" /etc/ifplugd.conf
+  sudo cp /etc/netctl/examples/ethernet-dhcp \
+    /etc/netctl/${network_interface["wired"]}-dhcp
+  sudo sed -i -e "s/eth0/${network_interface["wired"]}/" \
+    /etc/netctl/${network_interface["wired"]}-dhcp
+  sudo systemctl enable --now \
+    netctl-ifplugd@${network_interface["wired"]}.service
+
+  sudo systemctl enable --now netctl-auto@${network_interface["wireless"]}
+  sudo curl -o '/etc/netctl/hooks/#1' \
+    https://raw.githubusercontent.com/ytet5uy4/archlinux-installer/master/etc/netctl/{dropbox}
+fi
+
+### Clock synchronization
+sudo sed -i -e "s/#NTP=/NTP=`echo {0..3}.jp.pool.ntp.org`/" /etc/systemd/timesyncd.conf
+sudo sed -i -e '/#FallbackNTP/s/#//' /etc/systemd/timesyncd.conf
+sudo timedatectl set-ntp true
+sudo timedatectl status
+
+### Firewall
+sudo pacman -S --noconfirm ufw
+sudo systemctl enable --now ufw
+sudo ufw default deny
+sudo ufw enable
+
+## System administration
+### Service management
+sudo sed -i -e '/#DefaultTimeoutStopSec/s/90s/5s/' /etc/systemd/system.conf
+sudo sed -i -e '/#DefaultTimeoutStopSec/s/#//' /etc/systemd/system.conf
+sudo sed -i -e 's/#SystemMaxUse=/SystemMaxUse=5M/' /etc/systemd/journald.conf
+
+### System maintenance
+#### Magic System Request
+sudo bash -c "echo 'sysctl kernel.sysrq=1' >/etc/sysctl.d/99-sysctl.conf"
+
+#### securetty
+sudo sed -i -e '/console/s/^/# /' /etc/securetty
+sudo sed -i -e '/tty1/s/^/# /' /etc/securetty
+sudo sed -i -e '/tty2/s/^/# /' /etc/securetty
+sudo sed -i -e '/tty3/s/^/# /' /etc/securetty
+sudo sed -i -e '/tty4/s/^/# /' /etc/securetty
+sudo sed -i -e '/tty5/s/^/# /' /etc/securetty
+sudo sed -i -e '/tty6/s/^/# /' /etc/securetty
+sudo sed -i -e '/ttyS0/s/^/# /' /etc/securetty
+sudo sed -i -e '/hvc0/s/^/# /' /etc/securetty
+
+## Package management
+### pacman
+sudo sed -i -e '/Color/s/#//' /etc/pacman.conf
+
+### makepkg
+sudo sed -i -e '/#MAKEFLAGS="-j2"/s/#//' /etc/makepkg.conf
+sudo sed -i -e '/COMPRESSXZ/s/xz -c/xz -T 0 -c/' /etc/makepkg.conf
+
+### pkgfile
+sudo pacman -S --noconfirm pkgfile
+pkgfile -u
+
+### AUR helper
+#### cower
+gpg --recv-keys --keyserver hkp://pgp.mit.edu 1EB2638FF56C0C53
+curl -L -o '/tmp/#1' https://aur.archlinux.org/cgit/aur.git/snapshot/{cower.tar.gz}
+tar xzvf /tmp/cower.tar.gz -C /tmp/
+cd /tmp/cower
+makepkg -si
+cd -
+
+#### pacaur
+cower -dt /tmp pacaur
+cd /tmp/pacaur
+makepkg -si
+cd -
+
+### Snap
+sudo pacman -S --noconfirm snapd
+sudo systemctl enable --now snapd.refresh.timer
+
+## Graphical user interface
+### Display server
+sudo pacman -S --noconfirm xorg-server xorg-xinit xorg-xwininfo
+
+### Display driver
+if [[ $ARCHLINUX_INSTALLER_CPU = intel ]]; then
+  sudo pacman -S --noconfirm xf86-video-intel
+fi
+
+### Window Manager
+sudo pacman -S --noconfirm xmonad xmonad-contrib dmenu xmobar sxhkd \
+  compton xcape unclutter libnotify dunst xdg-user-dirs
+pacaur -S --noconfirm dzen2-xft-xpm-xinerama-git
+
+### Display Manager
+sudo pacman -S --noconfirm lightdm lightdm-gtk-greeter
+sudo systemctl enable --now lightdm
+sudo git clone https://github.com/ytet5uy4/abyss-gtk.git /usr/share/themes/Abyss
+sudo bash -c \
+  "cat << EOF >>/etc/lightdm/lightdm-gtk-greeter.conf
+background = /usr/share/lockscreens/lockscreen.jpg
+theme-name = Abyss
+font-name = Migu 1M 13
+xft-antialias = true
+position = 5% 50%
+hide-user-image = true
+indicators =
+clock-format = %H:%M
+EOF"
+
+### Screen locker
+sudo pacman -S --noconfirm light-locker xautolock
+
+### Wallpaper setters
+sudo pacman -S --noconfirm nitrogen
+
+## Power management
+### ACPI events
+sudo pacman -S --noconfirm acpi
+sudo sed -i -e 's/#HandlePowerKey=poweroff/HandlePowerKey=suspend/' \
+  /etc/systemd/logind.conf
+sudo sed -i -e '/#HandleLidSwitch=suspend/s/#//' /etc/systemd/logind.conf
+sudo systemctl restart systemd-logind
+
+### Laptop
+if [[ $ARCHLINUX_INSTALLER_LAPTOP = 1 ]]; then
+  sudo curl -o '/etc/udev/rules.d/#1' \
+    https://raw.githubusercontent.com/ytet5uy4/archlinux-installer/master/etc/udev/{99-lowbat.rules}
+  sudo curl -o '/etc/udev/rules.d/#1' \
+    https://raw.githubusercontent.com/ytet5uy4/archlinux-installer/master/etc/udev/{98-discharging.rules}
+fi
+
+## Multimedia
+### Sound
+sudo pacman -S --noconfirm alsa-utils sound-theme-freedesktop pulseaudio pamixer
+pamixer --unmute
+
+### Audio player
+sudo pacman -S --noconfirm mopidy ncmpcpp
+pacaur -S --noconfirm spotify mopidy-spotify
+
+### Video player
+sudo pacman -S --noconfirm mpv youtube-dl
+
+### PDF viewer
+sudo pacman -S --noconfirm zathura zathura-pdf-mupdf
+
+### Image viewer
+sudo pacman -S --noconfirm feh
+
+### Image editor
+sudo pacman -S --noconfirm gimp inkscape
+
+### Screenshot
+sudo pacman -S --noconfirm slop maim
+
+### Screencast
+sudo pacman -S --noconfirm ffmpeg
+
+### Document viewer
+sudo pacman -S --noconfirm catdoc
+
+## Input devices
+### Keyboard layouts
+sudo localectl set-x11-keymap jp,us jp106,pc104 '' \
+  grp:ctrl_alt_toggle,ctrl:nocaps,terminate:ctrl_alt_bksp
+
+### Touchpad
+sudo pacman -S --noconfirm xf86-input-libinput
+sudo curl -o '/etc/X11/xorg.conf.d/#1' \
+  https://raw.githubusercontent.com/ytet5uy4/archlinux-installer/master/etc/X11/{50-synaptics.conf}
+
+## Appearance
+### Fonts
+sudo pacman -S --noconfirm ttf-dejavu
+pacaur -S --noconfirm ttf-migu ttf-vlgothic
+mkdir -p ~/.local/share/fonts
+curl -o "$HOME/.local/share/fonts/Inconsolata Nerd Font Complete Mono.otf" \
+  https://raw.githubusercontent.com/ryanoasis/nerd-fonts/master/patched-fonts/Inconsolata/complete/Inconsolata%20Nerd%20Font%20Complete%20Mono.otf
+
+### GTK+ theme
+sudo pacman -S --noconfirm arc-gtk-theme
+
+## Developer tools
+sudo pacman -S --noconfirm asciinema hub jq openssh ripgrep tmux terraform fzf ctags colordiff
+pacaur -S --noconfirm ghq envchain ghi google-cloud-sdk pet-git kops kubectl-bin direnv
+
+### Hypervisor
+sudo pacman -S --noconfirm docker docker-compose
+sudo systemctl enable --now docker
+sudo gpasswd -a $USER docker
+sudo mkdir /etc/systemd/system/docker.service.d/
+sudo curl -o '/etc/systemd/system/docker.service.d/#1' \
+  https://raw.githubusercontent.com/ytet5uy4/archlinux-installer/master/etc/systemd/docker/{iptables.conf}
+
+sudo pacman -S --noconfirm virtualbox virtualbox-guest-iso virtualbox-host-modules-arch vagrant net-tools
+vboxmanage setproperty machinefolder ~/.local/share/virtualbox
+sudo gpasswd -a $USER vboxusers
+vagrant plugin install vagrant-vbguest vagrant-hostupdater vagrant-omnibus vagrant-proxyconf
+
+### Anyenv
+git clone https://github.com/riywo/anyenv ~/.local/share/anyenv
+git clone https://github.com/znz/anyenv-update ~/.local/share/anyenv/plugins/anyenv-update
+
+### gitlint
+pacaur -S --noconfirm gitlint
+mkdir -p ~/.local/share/git/template/hooks/
+ln -s "`pacaur -Ql gitlint | grep commit-msg | awk '{print $2}'`" \
+  ~/.local/share/git/template/hooks/commit-msg
+
+### go
+sudo pacman -S --noconfirm go
+go get -u github.com/pocke/xrandr-mirror
+go get -u github.com/derekparker/delve/cmd/dlv
+go get -u github.com/b4b4r07/gch
+go get -u github.com/mattn/twty
+go get -u github.com/b4b4r07/gomi/...
+go get -u github.com/itchyny/fillin
+
+### ghrls
+go get -d github.com/dtan4/ghrls
+cd $GOPATH/src/github.com/dtan4/ghrls
+make deps
+make install
+
+### kr
+sudo pacman -S --noconfirm rust cargo
+go get github.com/kryptco/kr
+cd $GOPATH/src/github.com/kryptco/kr
+make
+make install
+make start
+
+## Utilities
+sudo pacman -S --noconfirm \
+  dosfstools exfat-utils \
+  gpick gptfdisk \
+  unzip xautomation xsel zip
+pacaur -S --noconfirm \
+  translate-shell \
+  screenkey neofetch \
+  aarchup \
+  arch-wiki-man needrestart \
+  keybase-bin
+
+### Terminal emulator
+sudo pacman -S --noconfirm termite rxvt-unicode
+pacaur -S --noconfirm urxvt-resize-font-git
+
+### Text Editor
+sudo pacman -S --noconfirm neovim python2-neovim python-neovim python-pip python2-pip
+pacaur -S --noconfirm ruby-neovim
+sudo pacman -S --noconfirm ansible-lint
+pacaur -S --noconfirm python-vint yamllint nodejs-jsonlint coffeelint stylelint
+gem install mdl
+npm install -g sass-lint
+npm install -g pug-lint
+gem install slim_lint
+
+### File Manager
+sudo pacman -S --noconfirm ranger w3m libcaca highlight atool mediainfo poppler
+
+### System monitoring
+pacaur -S --noconfirm vtop
+sudo curl -o '/usr/lib/node_modules/vtop/themes/#1' \
+  https://raw.githubusercontent.com/ytet5uy4/archlinux-installer/master/etc/vtop/{abyss.json}
+
+### Input Method
+sudo pacman -S --noconfirm fcitx-im fcitx-configtool fcitx-mozc
+
+### PasswordManager
+sudo pacman -S --noconfirm lastpass-cli gnome-keyring libsecret
+sudo ln -sf /usr/bin/pinentry-curses /usr/bin/pinentry
+pacaur -S --noconfirm gkeyring
+
+### Web browsers
+sudo pacman -S --noconfirm chromium
+pacaur -S --noconfirm chromium-widevine luakit-git
+
+### File sharing
+sudo pacman -S --noconfirm aws-cli dropbox
+pacaur -S --noconfirm dropbox-cli
+
+### Instant messaging
+sudo pacman -S --noconfirm weechat tcl ruby
+
+### Swap
+sudo pacman -S --noconfirm systemd-swap
+sudo sed -i -e '/swapfu_enabled/s/0/1/' /etc/systemd/swap.conf
+sudo systemctl enable --now systemd-swap
