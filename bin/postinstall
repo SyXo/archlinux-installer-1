@@ -145,9 +145,6 @@ EOF"
 ### Screen locker
 sudo pacman -S --noconfirm light-locker xautolock
 
-### Wallpaper setters
-sudo pacman -S --noconfirm nitrogen
-
 ## Power management
 ### ACPI events
 sudo pacman -S --noconfirm acpi
