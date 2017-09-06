@@ -124,7 +124,6 @@ fi
 ### Window Manager
 sudo pacman -S --noconfirm xmonad xmonad-contrib dmenu xmobar sxhkd \
   compton xcape unclutter libnotify dunst xdg-user-dirs
-pacaur -S --noconfirm dzen2-xft-xpm-xinerama-git
 
 ### Display Manager
 sudo pacman -S --noconfirm lightdm lightdm-gtk-greeter
