@@ -212,8 +212,10 @@ curl -o "$HOME/.local/share/fonts/Inconsolata Nerd Font Complete Mono.otf" \
 sudo pacman -S --noconfirm arc-gtk-theme
 
 ## Developer tools
-sudo pacman -S --noconfirm asciinema hub jq openssh ripgrep tmux terraform fzf ctags colordiff
-pacaur -S --noconfirm ghq envchain ghi google-cloud-sdk pet-git kops kubectl-bin direnv
+sudo pacman -S --noconfirm asciinema hub jq openssh ripgrep tmux terraform fzf \
+  ctags colordiff
+pacaur -S --noconfirm ghq envchain ghi google-cloud-sdk pet-git kops \
+  kubectl-bin direnv docker-credential-secretservice
 
 ### Hypervisor
 sudo pacman -S --noconfirm docker docker-compose
