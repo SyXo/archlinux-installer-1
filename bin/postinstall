@@ -127,7 +127,7 @@ sudo pacman -S --noconfirm xmonad xmonad-contrib dmenu xmobar sxhkd \
 
 ### Display Manager
 sudo pacman -S --noconfirm lightdm lightdm-gtk-greeter
-sudo systemctl enable --now lightdm
+sudo systemctl enable lightdm
 sudo git clone https://github.com/ytet5uy4/abyss-gtk.git /usr/share/themes/Abyss
 sudo bash -c \
   "cat << EOF >>/etc/lightdm/lightdm-gtk-greeter.conf
