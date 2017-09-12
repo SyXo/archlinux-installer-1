@@ -124,7 +124,7 @@ fi
 
 ### Window Manager
 sudo pacman -S --noconfirm xmonad xmonad-contrib dmenu xmobar sxhkd \
-  compton xcape unclutter libnotify dunst xdg-user-dirs
+  compton xcape unclutter libnotify dunst xdg-user-dirs nitrogen
 
 ### Display Manager
 sudo pacman -S --noconfirm lightdm lightdm-gtk-greeter
@@ -243,6 +243,7 @@ ln -s "`pacaur -Ql gitlint | grep commit-msg | awk '{print $2}'`" \
 
 ### go
 sudo pacman -S --noconfirm go
+export GOPATH
 go get -u github.com/pocke/xrandr-mirror
 go get -u github.com/derekparker/delve/cmd/dlv
 go get -u github.com/b4b4r07/gch
