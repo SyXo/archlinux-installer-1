@@ -167,7 +167,7 @@ pamixer --unmute
 
 ### Audio player
 sudo pacman -S --noconfirm mopidy ncmpcpp
-pacaur -S --noconfirm spotify mopidy-spotify
+pacaur -S --noconfirm --noedit spotify mopidy-spotify
 
 ### Video player
 sudo pacman -S --noconfirm mpv youtube-dl
@@ -203,7 +203,7 @@ sudo curl -o '/etc/X11/xorg.conf.d/#1' \
 ## Appearance
 ### Fonts
 sudo pacman -S --noconfirm ttf-dejavu
-pacaur -S --noconfirm ttf-migu ttf-vlgothic
+pacaur -S --noconfirm --noedit ttf-migu ttf-vlgothic
 mkdir -p ~/.local/share/fonts
 curl -o "$HOME/.local/share/fonts/Inconsolata Nerd Font Complete Mono.otf" \
   https://raw.githubusercontent.com/ryanoasis/nerd-fonts/master/patched-fonts/Inconsolata/complete/Inconsolata%20Nerd%20Font%20Complete%20Mono.otf
@@ -214,7 +214,7 @@ sudo pacman -S --noconfirm arc-gtk-theme
 ## Developer tools
 sudo pacman -S --noconfirm asciinema hub jq openssh ripgrep tmux terraform fzf \
   ctags colordiff
-pacaur -S --noconfirm ghq envchain ghi google-cloud-sdk pet-git kops \
+pacaur -S --noconfirm --noedit ghq envchain ghi google-cloud-sdk pet-git kops \
   kubectl-bin direnv docker-credential-secretservice
 
 ### Hypervisor
@@ -235,7 +235,7 @@ git clone https://github.com/riywo/anyenv ~/.local/share/anyenv
 git clone https://github.com/znz/anyenv-update ~/.local/share/anyenv/plugins/anyenv-update
 
 ### gitlint
-pacaur -S --noconfirm gitlint
+pacaur -S --noconfirm --noedit gitlint
 mkdir -p ~/.local/share/git/template/hooks/
 ln -s "`pacaur -Ql gitlint | grep commit-msg | awk '{print $2}'`" \
   ~/.local/share/git/template/hooks/commit-msg
@@ -268,7 +268,7 @@ sudo pacman -S --noconfirm \
   dosfstools exfat-utils \
   gpick gptfdisk \
   unzip xautomation xsel zip
-pacaur -S --noconfirm \
+pacaur -S --noconfirm --noedit \
   translate-shell \
   screenkey neofetch \
   aarchup \
@@ -277,13 +277,13 @@ pacaur -S --noconfirm \
 
 ### Terminal emulator
 sudo pacman -S --noconfirm termite rxvt-unicode
-pacaur -S --noconfirm urxvt-resize-font-git
+pacaur -S --noconfirm --noedit urxvt-resize-font-git
 
 ### Text Editor
 sudo pacman -S --noconfirm neovim python2-neovim python-neovim python-pip python2-pip
-pacaur -S --noconfirm ruby-neovim
+pacaur -S --noconfirm --noedit ruby-neovim
 sudo pacman -S --noconfirm ansible-lint
-pacaur -S --noconfirm python-vint yamllint nodejs-jsonlint coffeelint stylelint
+pacaur -S --noconfirm --noedit python-vint yamllint nodejs-jsonlint coffeelint stylelint
 gem install mdl
 npm install -g sass-lint
 npm install -g pug-lint
@@ -293,7 +293,7 @@ gem install slim_lint
 sudo pacman -S --noconfirm ranger w3m libcaca highlight atool mediainfo poppler
 
 ### System monitoring
-pacaur -S --noconfirm vtop
+pacaur -S --noconfirm --noedit vtop
 sudo curl -o '/usr/lib/node_modules/vtop/themes/#1' \
   https://raw.githubusercontent.com/ytet5uy4/archlinux-installer/master/etc/vtop/{abyss.json}
 
@@ -303,15 +303,15 @@ sudo pacman -S --noconfirm fcitx-im fcitx-configtool fcitx-mozc
 ### PasswordManager
 sudo pacman -S --noconfirm lastpass-cli gnome-keyring libsecret
 sudo ln -sf /usr/bin/pinentry-curses /usr/bin/pinentry
-pacaur -S --noconfirm gkeyring
+pacaur -S --noconfirm --noedit gkeyring
 
 ### Web browsers
 sudo pacman -S --noconfirm chromium
-pacaur -S --noconfirm chromium-widevine luakit-git
+pacaur -S --noconfirm --noedit chromium-widevine luakit-git
 
 ### File sharing
 sudo pacman -S --noconfirm aws-cli dropbox
-pacaur -S --noconfirm dropbox-cli
+pacaur -S --noconfirm --noedit dropbox-cli
 
 ### Instant messaging
 sudo pacman -S --noconfirm weechat tcl ruby
