@@ -99,13 +99,13 @@ gpg --recv-keys --keyserver hkp://pgp.mit.edu 1EB2638FF56C0C53
 curl -L -o '/tmp/#1' https://aur.archlinux.org/cgit/aur.git/snapshot/{cower.tar.gz}
 tar xzvf /tmp/cower.tar.gz -C /tmp/
 cd /tmp/cower
-makepkg -si
+makepkg -si --noconfirm
 cd -
 
 #### pacaur
 cower -dt /tmp pacaur
 cd /tmp/pacaur
-makepkg -si
+makepkg -si --noconfirm
 cd -
 
 ### Snap
