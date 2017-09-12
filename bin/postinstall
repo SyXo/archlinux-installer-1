@@ -114,7 +114,8 @@ sudo systemctl enable --now snapd.refresh.timer
 
 ## Graphical user interface
 ### Display server
-sudo pacman -S --noconfirm xorg-server xorg-xinit xorg-xwininfo xorg-xbacklight
+sudo pacman -S --noconfirm xorg-server xorg-xinit xorg-xwininfo \
+  xorg-xbacklight xorg-xinput xorg-xrandr
 
 ### Display driver
 if [[ $ARCHLINUX_INSTALLER_CPU = intel ]]; then
