@@ -21,6 +21,12 @@ fi
 if [[ -z $ARCHLINUX_INSTALLER_WIRELESS_NETWORK_INTERFACE ]]; then
   export ARCHLINUX_INSTALLER_WIRELESS_NETWORK_INTERFACE=wlp4s0
 fi
+if [[ -z $ARCHLINUX_INSTALLER_KEYLAYOUT ]]; then
+  export ARCHLINUX_INSTALLER_KEYLAYOUT=jp
+fi
+if [[ -z $ARCHLINUX_INSTALLER_KEYMODEL ]]; then
+  export ARCHLINUX_INSTALLER_KEYMODEL=jp106
+fi
 if [[ -z $ARCHLINUX_INSTALLER_CPU ]]; then
   export ARCHLINUX_INSTALLER_CPU=intel
 fi
@@ -193,8 +199,10 @@ sudo pacman -S --noconfirm catdoc
 
 ## Input devices
 ### Keyboard layouts
-sudo localectl set-x11-keymap jp,us jp106,pc104 '' \
-  grp:ctrl_alt_toggle,ctrl:nocaps,terminate:ctrl_alt_bksp
+declare keylayout="$ARCHLINUX_INSTALLER_KEYLAYOUT"
+declare keymodel="$ARCHLINUX_INSTALLER_KEYMODEL"
+sudo localectl set-x11-keymap "$keylayout" "$keymodel" '' \
+  ctrl:nocaps,terminate:ctrl_alt_bksp
 
 ### Touchpad
 sudo pacman -S --noconfirm xf86-input-libinput
