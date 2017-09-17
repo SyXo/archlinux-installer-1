@@ -49,7 +49,7 @@ You can install by the following command.
 ```bash
 # export ARCHLINUX_INSTALLER_ROOT_PASSWORD=<ROOT_PASSWORD>
 # export ARCHLINUX_INSTALLER_USER_PASSWORD=<USER_PASSWORD>
-# bash <(curl -L script.ytet5uy4.com/archlinux-installer/install.bash)
+# bash <(curl https://script.ytet5uy4.com/archlinux-installer/install.bash)
 # reboot
 ```
 
@@ -65,7 +65,7 @@ You can install by the following command.
 
 ```zsh
 % export ARCHLINUX_INSTALLER_USER_PASSWORD=<USER_PASSWORD>
-% bash <(curl -L script.ytet5uy4.com/archlinux-installer/postinstall.bash)
+% bash <(curl https://script.ytet5uy4.com/archlinux-installer/postinstall.bash)
 ```
 
 ## License
