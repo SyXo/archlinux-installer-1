@@ -212,6 +212,7 @@ sudo curl -o '/etc/X11/xorg.conf.d/#1' \
 ## Appearance
 ### Fonts
 sudo pacman -S noto-fonts-cjk ttf-hack
+pacaur -S --noconfirm --noedit ttf-migu
 
 ### GTK+ theme
 sudo pacman -S --noconfirm arc-gtk-theme
