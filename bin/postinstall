@@ -140,7 +140,7 @@ sudo bash -c \
   "cat << EOF >>/etc/lightdm/lightdm-gtk-greeter.conf
 background = /usr/share/lockscreens/lockscreen.jpg
 theme-name = Abyss
-font-name = Migu 1M 13
+font-name = Noto Sans CJK JP 13
 xft-antialias = true
 position = 5% 50%
 hide-user-image = true
@@ -211,11 +211,7 @@ sudo curl -o '/etc/X11/xorg.conf.d/#1' \
 
 ## Appearance
 ### Fonts
-sudo pacman -S --noconfirm ttf-dejavu
-pacaur -S --noconfirm --noedit ttf-migu ttf-vlgothic
-mkdir -p ~/.local/share/fonts
-curl -o "$HOME/.local/share/fonts/Inconsolata Nerd Font Complete Mono.otf" \
-  https://raw.githubusercontent.com/ryanoasis/nerd-fonts/master/patched-fonts/Inconsolata/complete/Inconsolata%20Nerd%20Font%20Complete%20Mono.otf
+sudo pacman -S noto-fonts-cjk ttf-hack
 
 ### GTK+ theme
 sudo pacman -S --noconfirm arc-gtk-theme
