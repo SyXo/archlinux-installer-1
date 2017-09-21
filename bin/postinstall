@@ -53,6 +53,7 @@ else
   sudo curl -o '/etc/netctl/hooks/#1' \
     https://raw.githubusercontent.com/ytet5uy4/archlinux-installer/master/etc/netctl/{dropbox}
 fi
+sudo pacman -S --noconfirm nmap traceroute bind-tools whois
 
 ### Clock synchronization
 sudo sed -i -e "s/#NTP=/NTP=`echo {0..3}.jp.pool.ntp.org`/" /etc/systemd/timesyncd.conf
