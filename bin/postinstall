@@ -50,8 +50,6 @@ else
     netctl-ifplugd@${network_interface["wired"]}.service
 
   sudo systemctl enable --now netctl-auto@${network_interface["wireless"]}
-  sudo curl -o '/etc/netctl/hooks/#1' \
-    https://raw.githubusercontent.com/ytet5uy4/archlinux-installer/master/etc/netctl/{dropbox}
 fi
 sudo pacman -S --noconfirm nmap traceroute bind-tools whois
 
