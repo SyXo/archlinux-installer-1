@@ -282,7 +282,7 @@ pacaur -S --noconfirm --noedit \
   screenkey neofetch \
   aarchup \
   arch-wiki-man needrestart \
-  keybase-bin
+  keybase-bin pngquant
 
 ### Terminal emulator
 sudo pacman -S --noconfirm termite rxvt-unicode
