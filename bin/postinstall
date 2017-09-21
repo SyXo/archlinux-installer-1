@@ -280,7 +280,8 @@ pacaur -S --noconfirm --noedit \
   screenkey neofetch \
   aarchup \
   arch-wiki-man needrestart \
-  keybase-bin pngquant aria2c
+  keybase-bin pngquant aria2c \
+  pigz pixz pbzip2
 
 ### Terminal emulator
 sudo pacman -S --noconfirm termite rxvt-unicode
