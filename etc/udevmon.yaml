@@ -1,0 +1,4 @@
+- JOB: "intercept -g <devnode> | caps2esc | uinput -d <devnode>"
+  DEVICE:
+    EVENTS:
+      EV_KEY: [KEY_CAPSLOCK, KEY_ESC]
