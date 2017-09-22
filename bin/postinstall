@@ -132,24 +132,8 @@ fi
 sudo pacman -S --noconfirm xmonad xmonad-contrib dmenu xmobar sxhkd \
   compton xcape unclutter libnotify dunst xdg-user-dirs
 
-### Display Manager
-sudo pacman -S --noconfirm lightdm lightdm-gtk-greeter
-sudo systemctl enable lightdm
-sudo git clone https://github.com/ytet5uy4/abyss-gtk.git /usr/share/themes/Abyss
-sudo bash -c \
-  "cat << EOF >>/etc/lightdm/lightdm-gtk-greeter.conf
-background = /usr/share/lockscreens/lockscreen.jpg
-theme-name = Abyss
-font-name = Noto Sans CJK JP 13
-xft-antialias = true
-position = 5% 50%
-hide-user-image = true
-indicators =
-clock-format = %H:%M
-EOF"
-
 ### Screen locker
-sudo pacman -S --noconfirm light-locker xautolock
+sudo pacman -S --noconfirm i3lock xautolock
 
 ## Power management
 ### ACPI events
