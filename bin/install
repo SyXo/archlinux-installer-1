@@ -11,33 +11,14 @@ if [[ -z $ARCHLINUX_INSTALLER_USER_PASSWORD ]]; then
 fi
 
 # Set default value
-if [[ -z $ARCHLINUX_INSTALLER_USB_KEY ]]; then
-  export ARCHLINUX_INSTALLER_LAPTOP=1
+if [[ -z $ARCHLINUX_INSTALLER_BLOCKDEVICE ]]; then
+  export ARCHLINUX_INSTALLER_BLOCKDEVICE=nvme0n1
 fi
-if [[ $ARCHLINUX_INSTALLER_LAPTOP = 1 ]]; then
-  if [[ -z $ARCHLINUX_INSTALLER_BLOCKDEVICE ]]; then
-    export ARCHLINUX_INSTALLER_BLOCKDEVICE=nvme0n1
-  fi
-  if [[ -z $ARCHLINUX_INSTALLER_PARTITION1 ]]; then
-    export ARCHLINUX_INSTALLER_PARTITION1=nvme0n1p1
-  fi
-  if [[ -z $ARCHLINUX_INSTALLER_PARTITION2 ]]; then
-    export ARCHLINUX_INSTALLER_PARTITION2=nvme0n1p2
-  fi
-elif [[ $ARCHLINUX_INSTALLER_USB_KEY = 1 ]]; then
-  export ARCHLINUX_INSTALLER_ROOT_ONLY = 1
-  if [[ -z $ARCHLINUX_INSTALLER_BLOCKDEVICE ]]; then
-    export ARCHLINUX_INSTALLER_BLOCKDEVICE=sdb
-  fi
-  if [[ -z $ARCHLINUX_INSTALLER_PARTITION1 ]]; then
-    export ARCHLINUX_INSTALLER_PARTITION1=sdb1
-  fi
-  if [[ -z $ARCHLINUX_INSTALLER_PARTITION2 ]]; then
-    export ARCHLINUX_INSTALLER_PARTITION2=sdb2
-  fi
-  if [[ -z $ARCHLINUX_INSTALLER_PARTITION3 ]]; then
-    export ARCHLINUX_INSTALLER_PARTITION3=sdb3
-  fi
+if [[ -z $ARCHLINUX_INSTALLER_PARTITION1 ]]; then
+  export ARCHLINUX_INSTALLER_PARTITION1=nvme0n1p1
+fi
+if [[ -z $ARCHLINUX_INSTALLER_PARTITION2 ]]; then
+  export ARCHLINUX_INSTALLER_PARTITION2=nvme0n1p2
 fi
 if [[ -z $ARCHLINUX_INSTALLER_HOSTNAME ]]; then
   export ARCHLINUX_INSTALLER_HOSTNAME=localhost
@@ -81,22 +62,11 @@ timedatectl set-ntp true
 
 # Partition the disks
 #
-# Laptop
-#
 # | Mount point | Partition | Partition type | Filesystem | Size  |
 # |:------------|:----------|:---------------|:-----------|:------|
 # | /boot       | nvme0n1p1 | EFI System     | FAT32      | 100MB |
 # | /           | nvme0n1p2 | Linux LVM      | XFS        | 30GB  |
 # | /home       | nvme0n1p2 | Linux LVM      | XFS        | rest  |
-
-#
-# USB Key
-#
-# | Mount point | Partition | Partition type       | Filesystem | Size  |
-# |:------------|:----------|:---------------------|:-----------|:------|
-# | /data       | sdb1      | Microsoft basic data | exFAT      | 2GB   |
-# | /boot       | sdb2      | EFI System           | FAT32      | 100MB |
-# | /           | sdb3      | Linux filesystem     | XFS        | rest  |
 
 declare block_device="$ARCHLINUX_INSTALLER_BLOCKDEVICE"
 
@@ -108,54 +78,31 @@ declare -a partitions=(
 
 ## Create partitions
 sgdisk -Z /dev/$block_device
-if [[ $ARCHLINUX_INSTALLER_LAPTOP = 1 ]]; then
-  sgdisk -n 0::+100M -t 0:EF00 -c 0:'EFI System' /dev/$block_device
-  sgdisk -n 0::: -t 0:8E00 -c 0:'Linux LVM' /dev/$block_device
-elif [[ $ARCHLINUX_INSTALLER_USB_KEY = 1 ]]; then
-  sgdisk -n 0::+2G -t 0:0700 -c 0:'Microsoft basic data' /dev/$block_device
-  sgdisk -n 0::+100M -t 0:EF00 -c 0:'EFI System' /dev/$block_device
-  sgdisk -n 0::: -t 0:8300 -c 0:'Linux filesystem' /dev/$block_device
-fi
+sgdisk -n 0::+100M -t 0:EF00 -c 0:'EFI System' /dev/$block_device
+sgdisk -n 0::: -t 0:8E00 -c 0:'Linux LVM' /dev/$block_device
 sgdisk -p /dev/$block_device
 
 ## Create physical volumes
-if [[ $ARCHLINUX_INSTALLER_LAPTOP = 1 ]]; then
-  pvcreate /dev/${partitions[1]}
-fi
+pvcreate /dev/${partitions[1]}
 
 ## Create volume group
-if [[ $ARCHLINUX_INSTALLER_LAPTOP = 1 ]]; then
-  vgcreate vg00 /dev/${partitions[1]}
-fi
+vgcreate vg00 /dev/${partitions[1]}
 
 ## Create logical volumes
-if [[ $ARCHLINUX_INSTALLER_LAPTOP = 1 ]]; then
-  lvcreate vg00 -L 30GB -n root
-  lvcreate vg00 -l 100%FREE -n home
-fi
+lvcreate vg00 -L 30GB -n root
+lvcreate vg00 -l 100%FREE -n home
 
 # Format the partitions
-if [[ $ARCHLINUX_INSTALLER_LAPTOP = 1 ]]; then
-  mkfs.vfat -F 32 /dev/${partitions[0]}
-  mkfs.xfs /dev/mapper/vg00-root
-  mkfs.xfs /dev/mapper/vg00-home
-elif [[ $ARCHLINUX_INSTALLER_USB_KEY = 1 ]]; then
-  mkfs.exfat /dev/${partitions[0]}
-  mkfs.vfat -F 32 /dev/${partitions[1]}
-  mkfs.xfs /dev/${partitions[2]}
-fi
+mkfs.vfat -F 32 /dev/${partitions[0]}
+mkfs.xfs /dev/mapper/vg00-root
+mkfs.xfs /dev/mapper/vg00-home
 
 # Mount the file systems
 mkdir /mnt/boot
-if [[ $ARCHLINUX_INSTALLER_LAPTOP = 1 ]]; then
-  mkdir /mnt/home
-  mount /dev/mapper/vg00-root /mnt
-  mount /dev/mapper/vg00-home /mnt/home
-  mount /dev/${partitions[0]} /mnt/boot
-elif [[ $ARCHLINUX_INSTALLER_USB_KEY = 1 ]]; then
-  mount /dev/${partitions[2]} /mnt
-  mount /dev/${partitions[1]} /mnt/boot
-fi
+mkdir /mnt/home
+mount /dev/mapper/vg00-root /mnt
+mount /dev/mapper/vg00-home /mnt/home
+mount /dev/${partitions[0]} /mnt/boot
 
 # Force a refresh of all package lists
 pacman -Syy
@@ -206,11 +153,9 @@ arch-chroot /mnt pacman -S --noconfirm ifplugd
 arch-chroot /mnt pacman -S --noconfirm wpa_actiond rfkill
 
 ## Initramfs
-if [[ $ARCHLINUX_INSTALLER_LAPTOP = 1 ]]; then
-  arch-chroot /mnt sed -i -e \
-    's/\(^HOOKS.*\)block filesystems\(.*\)/\1block lvm2 filesystems\2/' \
-    /etc/mkinitcpio.conf
-fi
+arch-chroot /mnt sed -i -e \
+  's/\(^HOOKS.*\)block filesystems\(.*\)/\1block lvm2 filesystems\2/' \
+  /etc/mkinitcpio.conf
 arch-chroot /mnt sed -i -e 's/\(^HOOKS.*\) fsck/\1/' /etc/mkinitcpio.conf
 arch-chroot /mnt cp \
   /usr/lib/systemd/system/systemd-fsck{@,-root}.service /etc/systemd/system
