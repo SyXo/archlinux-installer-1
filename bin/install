@@ -98,9 +98,8 @@ mkfs.xfs /dev/mapper/vg00-root
 mkfs.xfs /dev/mapper/vg00-home
 
 # Mount the file systems
-mkdir /mnt/boot
-mkdir /mnt/home
 mount /dev/mapper/vg00-root /mnt
+mkdir /mnt/{boot,home}
 mount /dev/mapper/vg00-home /mnt/home
 mount /dev/${partitions[0]} /mnt/boot
 
