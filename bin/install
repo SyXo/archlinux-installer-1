@@ -89,8 +89,8 @@ pvcreate /dev/${partitions[1]}
 vgcreate vg00 /dev/${partitions[1]}
 
 ## Create logical volumes
-lvcreate vg00 -L 30GB -n root
-lvcreate vg00 -l 100%FREE -n home
+lvcreate -y vg00 -L 30GB -n root
+lvcreate -y vg00 -l 100%FREE -n home
 
 # Format the partitions
 mkfs.vfat -F 32 /dev/${partitions[0]}
