@@ -96,7 +96,7 @@ sudo sed -i -e '/COMPRESSXZ/s/xz -c/xz -T 0 -c/' /etc/makepkg.conf
 
 ### pkgfile
 sudo pacman -S --noconfirm pkgfile
-pkgfile -u
+sudo pkgfile -u
 
 ### AUR helper
 #### cower
