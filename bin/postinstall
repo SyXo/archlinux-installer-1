@@ -319,3 +319,11 @@ sudo pacman -S --noconfirm weechat tcl ruby
 sudo pacman -S --noconfirm systemd-swap
 sudo sed -i -e '/swapfu_enabled/s/0/1/' /etc/systemd/swap.conf
 sudo systemctl enable --now systemd-swap
+
+# Mount helper
+sudo pacman -S --noconfirm devmon polkit udisks2
+sudo chmod -s /usr/bin/udevil
+sudo gpasswd --add ytet5uy4 storage
+sudo curl -o '/etc/polkit-1/rules.d/#1' \
+https://raw.githubusercontent.com/ytet5uy4/archlinux-installer/master/etc/polkit-1/{50-udisks.rules}
+sudo systemctl enable --now devmon@ytet5uy4.service
