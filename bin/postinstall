@@ -198,7 +198,7 @@ sudo localectl set-x11-keymap "$keylayout" "$keymodel" '' \
 ### Touchpad
 sudo pacman -S --noconfirm xf86-input-libinput
 sudo curl -o '/etc/X11/xorg.conf.d/#1' \
-  https://raw.githubusercontent.com/ytet5uy4/archlinux-installer/master/etc/X11/{50-synaptics.conf}
+  https://raw.githubusercontent.com/ytet5uy4/archlinux-installer/master/etc/X11/{30-touchpad.conf}
 
 ## Appearance
 ### Fonts
