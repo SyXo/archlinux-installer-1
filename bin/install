@@ -112,9 +112,6 @@ cp /etc/pacman.d/mirrorlist{,.bak}
 reflector -c Japan -l 5 -p http --sort rate --save /etc/pacman.d/mirrorlist
 pacman -Syy
 
-# Update all packages
-pacman -Syu --noconfirm
-
 # Install the base packages
 pacstrap /mnt base base-devel
 
