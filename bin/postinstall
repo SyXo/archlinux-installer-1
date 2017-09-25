@@ -309,8 +309,8 @@ sudo pacman -S --noconfirm chromium
 pacaur -S --noconfirm --noedit chromium-widevine luakit-git
 
 ### File sharing
-sudo pacman -S --noconfirm aws-cli dropbox
-pacaur -S --noconfirm --noedit dropbox-cli
+sudo pacman -S --noconfirm aws-cli
+pacaur -S --noconfirm --noedit dropbox dropbox-cli
 
 ### Instant messaging
 sudo pacman -S --noconfirm weechat tcl ruby
