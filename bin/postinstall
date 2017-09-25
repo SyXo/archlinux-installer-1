@@ -41,7 +41,7 @@ else
   network_interface["wired"]="$ARCHLINUX_INSTALLER_WIRED_NETWORK_INTERFACE"
   network_interface["wireless"]="$ARCHLINUX_INSTALLER_WIRELESS_NETWORK_INTERFACE"
 
-  sudo sed -i -e "s/eth0/${network_interface["wired"]}/" /etc/ifplugd.conf
+  sudo sed -i -e "s/eth0/${network_interface["wired"]}/" /etc/ifplugd/ifplugd.conf
   sudo cp /etc/netctl/examples/ethernet-dhcp \
     /etc/netctl/${network_interface["wired"]}-dhcp
   sudo sed -i -e "s/eth0/${network_interface["wired"]}/" \
