@@ -131,7 +131,7 @@ fi
 ### Window Manager
 sudo pacman -S --noconfirm xmonad xmonad-contrib dmenu xmobar sxhkd \
   compton unclutter libnotify dunst xdg-user-dirs
-pacaur -S --noconfirm --noedit interception-tools interception-caps2esc
+pacaur -S --noconfirm --noedit interception-tools interception-caps2esc needrestart
 sudo curl -o '/etc/#1' \
   https://raw.githubusercontent.com/ytet5uy4/archlinux-installer/master/etc/{udevmon.yaml}
 declare devnode="$ARCHLINUX_INSTALLER_KEYBOARD_DEVNODE"
