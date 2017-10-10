@@ -212,7 +212,7 @@ sudo pacman -S --noconfirm arc-gtk-theme
 sudo pacman -S --noconfirm asciinema hub jq openssh ripgrep tmux terraform fzf \
   ctags colordiff
 pacaur -S --noconfirm --noedit ghq envchain ghi google-cloud-sdk pet-git kops \
-  kubectl-bin direnv docker-credential-secretservice cfssl nomad-bin
+  kubectl-bin direnv docker-credential-secretservice cfssl nomad-bin fd-rs
 
 ### Hypervisor
 sudo pacman -S --noconfirm docker docker-compose
