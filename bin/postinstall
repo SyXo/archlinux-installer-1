@@ -96,7 +96,8 @@ sudo sed -i -e '/COMPRESSXZ/s/xz -c/xz -T 0 -c/' /etc/makepkg.conf
 
 ### pkgfile
 sudo pacman -S --noconfirm pkgfile
-sudo pkgfile -u
+sudo systemctl start pkgfile-update
+sudo systemctl enable --now pkgfile-update.timer
 
 ### AUR helper
 #### cower
