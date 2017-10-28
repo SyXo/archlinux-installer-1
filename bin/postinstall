@@ -211,7 +211,7 @@ sudo pacman -S --noconfirm arc-gtk-theme
 
 ## Developer tools
 sudo pacman -S --noconfirm asciinema hub jq openssh ripgrep tmux terraform fzf \
-  ctags colordiff
+  ctags colordiff tree
 pacaur -S --noconfirm --noedit ghq envchain ghi google-cloud-sdk pet-git kops \
   kubectl-bin direnv docker-credential-secretservice cfssl nomad-bin fd-rs vegeta
 
