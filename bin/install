@@ -146,7 +146,7 @@ arch-chroot /mnt pacman -S --noconfirm iw wpa_supplicant dialog
 ### netctl-ifplugd
 arch-chroot /mnt pacman -S --noconfirm ifplugd
 ### netctl-auto
-arch-chroot /mnt pacman -S --noconfirm wpa_actiond rfkill
+arch-chroot /mnt pacman -S --noconfirm wpa_actiond util-linux
 
 ## Initramfs
 arch-chroot /mnt sed -i -e \
