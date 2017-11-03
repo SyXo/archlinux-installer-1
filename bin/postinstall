@@ -189,6 +189,9 @@ sudo pacman -S --noconfirm ffmpeg
 ### Document viewer
 sudo pacman -S --noconfirm catdoc
 
+### Mailer
+sudo pacman -S --noconfirm mutt offlineimap
+
 ## Input devices
 ### Keyboard layouts
 declare keylayout="$ARCHLINUX_INSTALLER_KEYLAYOUT"
