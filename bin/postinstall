@@ -286,9 +286,8 @@ pacaur -S --noconfirm --noedit urxvt-resize-font-git
 sudo pacman -S --noconfirm neovim python2-neovim python-neovim python-pip python2-pip
 pacaur -S --noconfirm --noedit ruby-neovim
 sudo pacman -S --noconfirm ansible-lint
-pacaur -S --noconfirm --noedit python-vint yamllint nodejs-jsonlint coffeelint stylelint
+pacaur -S --noconfirm --noedit python-vint yamllint nodejs-jsonlint stylelint
 gem install mdl
-npm install -g sass-lint
 npm install -g pug-lint
 gem install slim_lint
 
