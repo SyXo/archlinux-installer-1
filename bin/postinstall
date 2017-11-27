@@ -214,7 +214,7 @@ sudo pacman -S --noconfirm arc-gtk-theme
 
 ## Developer tools
 sudo pacman -S --noconfirm asciinema hub jq openssh ripgrep tmux terraform fzf \
-  ctags colordiff tree
+  ctags colordiff tree yarn
 pacaur -S --noconfirm --noedit ghq envchain ghi google-cloud-sdk pet-git kops \
   kubectl-bin direnv docker-credential-secretservice cfssl nomad-bin fd-rs vegeta
 
@@ -287,8 +287,8 @@ sudo pacman -S --noconfirm neovim python2-neovim python-neovim python-pip python
 pacaur -S --noconfirm --noedit ruby-neovim
 sudo pacman -S --noconfirm ansible-lint
 pacaur -S --noconfirm --noedit python-vint yamllint nodejs-jsonlint stylelint
+yarn global add pug-lint
 gem install mdl
-npm install -g pug-lint
 gem install slim_lint
 
 ### File Manager
